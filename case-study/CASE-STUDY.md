@@ -2,7 +2,8 @@
 
 > **Purpose:** the single most important sales document — a documentary-style story that answers
 > *"why should I trust you?"* before a lab owner asks it. This file is the **content source of
-> truth**; `index.html` renders it as a print-ready 13-slide deck.
+> truth**; `deck-en.html` renders it as a print-ready 13-slide deck. (`index.html` is the
+> language-chooser launcher; the standalone decks are `deck-en.html` / `deck-hi.html` / `deck-mr.html`.)
 >
 > **Audience:** the owner of an independent diagnostic lab (Aurangabad / tier-2 India).
 > **Lab is anonymized** throughout — *"a busy ~600-review pathology lab in Aurangabad."* Chat

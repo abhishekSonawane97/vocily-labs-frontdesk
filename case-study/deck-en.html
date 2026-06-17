@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocily Labs — WhatsApp Front Desk for Diagnostic Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#0F4C5C; --teal-deep:#0B3A47; --ink:#10202A; --coral:#FF7B54;
+    --amber:#FFB627; --paper:#F7F5F0; --paper-2:#FFFFFF; --line:#E3DDD2;
+    --muted:#5C6B70; --wa-bg:#ECE5DD; --wa-in:#FFFFFF; --wa-out:#DCF8C6;
+    --wa-night:#0B141A; --wa-in-n:#202C33; --wa-out-n:#005C4B; --green:#25D366;
+  }
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html,body{margin:0; padding:0; background:#cfd4d6; font-family:'Inter',system-ui,Arial,sans-serif; color:var(--ink);}
+  h1,h2,h3,.display{font-family:'Space Grotesk','Arial Black',sans-serif; letter-spacing:-.01em; margin:0;}
+
+  /* ---- icons ---- */
+  .ic{width:1em; height:1em; display:inline-block; vertical-align:-.14em; fill:none;
+    stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+
+  /* ---- slide frame ---- */
+  .page{
+    position:relative; isolation:isolate; width:297mm; min-height:210mm; height:210mm;
+    margin:8mm auto; background:var(--paper); overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:18mm 22mm; box-shadow:0 6px 30px rgba(0,0,0,.18);
+  }
+  .page > *{position:relative; z-index:1;}
+  /* paper pages get a subtle dot grid + a soft corner glow */
+  .page.paper{
+    background-color:var(--paper);
+    background-image:radial-gradient(rgba(15,76,92,.10) .7px, transparent .8px);
+    background-size:6mm 6mm;
+  }
+  .page.paper::before{content:""; position:absolute; z-index:0; inset:0; pointer-events:none;
+    background:radial-gradient(70% 55% at 100% 0%, rgba(255,123,84,.10), transparent 60%),
+               radial-gradient(60% 50% at 0% 100%, rgba(15,76,92,.07), transparent 60%);}
+  .page.dark{background:linear-gradient(140deg,var(--teal),var(--teal-deep)); color:#EAF3F4;}
+  .page.ink{background:linear-gradient(140deg,#16313c,var(--ink)); color:#EAF3F4;}
+  .page.coral{background:linear-gradient(135deg,#FF8a64,#FF6a3d); color:#2A0E04;}
+  .page.center{align-items:center; text-align:center;}
+
+  /* ---- hero photo pages (cover / problem / magic / final) ----
+     Drop a photo by setting  style="--hero:url('assets/NAME.jpg')"  on the .page.
+     Empty = a designed dark-teal gradient with a faint glyph. With a photo = same
+     scrim keeps text legible. Recommended image ~1480×1050px, JPG. */
+  .page.hero{
+    color:#EAF3F4; background-color:var(--teal-deep);
+    background-image:
+      linear-gradient(120deg, rgba(11,58,71,.86), rgba(16,32,42,.93)),
+      var(--hero, none);
+    background-size:cover; background-position:center;
+  }
+  .page.hero::before{content:""; position:absolute; z-index:0; inset:0; pointer-events:none;
+    background:radial-gradient(95% 70% at 82% 4%, rgba(255,123,84,.20), transparent 58%);}
+
+  /* big faint background glyph */
+  .glyph{position:absolute; z-index:0; pointer-events:none; opacity:.07; color:#fff;}
+  .page.paper .glyph{color:var(--teal); opacity:.05;}
+  .page.coral .glyph{color:#3a1408; opacity:.10;}
+
+  .kicker{display:inline-flex; align-items:center; gap:6px; font-family:'Space Grotesk',sans-serif;
+    font-weight:600; text-transform:uppercase; letter-spacing:.18em; font-size:11pt; color:var(--coral);
+    margin-bottom:10mm;}
+  .kicker .ic{width:15pt; height:15pt;}
+  .dark .kicker,.ink .kicker,.hero .kicker{color:var(--amber);}
+  h1{font-size:40pt; line-height:1.04; font-weight:700;}
+  h2{font-size:30pt; line-height:1.08; font-weight:700;}
+  .lead{font-size:14.5pt; line-height:1.5; color:var(--muted); max-width:185mm;}
+  .dark .lead,.ink .lead,.hero .lead{color:#C7DDE0;}
+  .coral .lead{color:#5a2a18;}
+  strong{font-weight:700;}
+
+  /* footer */
+  .foot{position:absolute; left:22mm; right:22mm; bottom:9mm; display:flex;
+    justify-content:space-between; align-items:center; font-size:10pt; color:var(--muted);
+    letter-spacing:.04em; z-index:3;}
+  .dark .foot,.ink .foot,.hero .foot{color:#88a9ad;}
+  .wm{font-family:'Space Grotesk',sans-serif; font-weight:700; letter-spacing:.02em;}
+  .wm .dot{color:var(--coral);}
+
+  /* ---- cover ---- */
+  .cover-wm{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15pt;
+    letter-spacing:.04em; position:absolute; top:18mm; left:0; right:0; text-align:center; color:#EAF3F4; z-index:2;}
+  .cover-wm .dot{color:var(--coral);}
+  .cover h1{font-size:46pt; max-width:230mm;}
+  .cover .sub{font-size:16pt; color:var(--amber); margin-top:9mm; font-family:'Space Grotesk',sans-serif; font-weight:500;}
+  .cover .tag{position:absolute; bottom:20mm; left:0; right:0; text-align:center;
+    font-size:11pt; letter-spacing:.04em; color:#9FC2C6; z-index:2;}
+
+  /* ---- stat row (4 questions) ---- */
+  .qrow{display:flex; gap:8mm; margin-top:14mm; width:100%;}
+  .qcard{flex:1; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16);
+    border-radius:5mm; padding:8mm 6mm; text-align:center; backdrop-filter:blur(2px);}
+  .chip{width:16mm; height:16mm; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    margin:0 auto 5mm; background:rgba(255,123,84,.18); color:var(--amber); font-family:'Space Grotesk',sans-serif; font-weight:700;}
+  .chip .ic{width:8mm; height:8mm;} .chip .rs{font-size:15pt;}
+  .qcard .t{font-size:11.5pt; line-height:1.35; color:#DCEAEC;}
+
+  /* ---- timeline ---- */
+  .rail{display:flex; align-items:flex-start; gap:0; margin:12mm 0 8mm; width:100%; position:relative;}
+  .rail::before{content:""; position:absolute; left:2%; right:2%; top:18mm; height:2px;
+    background:linear-gradient(90deg,var(--line) 70%, rgba(255,123,84,.5));}
+  .stop{flex:1; text-align:center; position:relative; padding:0 1mm;}
+  .stop .tm{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:10pt; color:var(--teal);}
+  .stop .dot{width:4mm; height:4mm; border-radius:50%; background:var(--teal); margin:5mm auto 5mm; box-shadow:0 0 0 3px rgba(15,76,92,.12);}
+  .stop .lb{font-size:10pt; line-height:1.3; color:var(--muted);}
+  .stop.miss .tm{color:var(--coral);}
+  .stop.miss .dot{background:var(--coral); width:8mm; height:8mm; margin-top:3mm; box-shadow:0 0 0 4px rgba(255,123,84,.18);
+    display:flex; align-items:center; justify-content:center; color:#fff;}
+  .stop.miss .dot .ic{width:5mm;height:5mm;stroke-width:2.4;}
+  .stop.miss .lb{color:var(--coral); font-weight:600;}
+
+  /* ---- big money ---- */
+  .huge{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:62pt; line-height:1;
+    margin:8mm 0; color:#fff;}
+  .coral .huge{color:#2A0E04;}
+  .foot-note{font-size:10pt; font-style:italic; margin-top:8mm; opacity:.85;}
+
+  /* ---- flow row ---- */
+  .flow{display:flex; align-items:center; justify-content:center; gap:6mm; margin:12mm 0 8mm; flex-wrap:nowrap;}
+  .node{background:#fff; border:1px solid var(--line); border-radius:4mm; padding:6mm 7mm;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12.5pt; text-align:center; color:var(--teal);
+    box-shadow:0 4px 14px rgba(0,0,0,.06); display:flex; flex-direction:column; align-items:center; gap:3mm; min-width:34mm;}
+  .node .ic{width:9mm; height:9mm; color:var(--coral);}
+  .node.accent{background:linear-gradient(140deg,var(--teal),var(--teal-deep)); color:#fff; border-color:var(--teal);}
+  .node.accent .ic{color:var(--amber);}
+  .arrow{font-size:20pt; color:var(--coral); font-weight:700;}
+  .verbs{display:flex; gap:5mm; justify-content:center; margin-top:4mm; flex-wrap:wrap;}
+  .verb{font-size:11.5pt; color:var(--muted); display:inline-flex; align-items:center; gap:4px;}
+  .verb .ic{width:13pt; height:13pt; color:var(--teal);}
+  .verb b{color:var(--ink); font-family:'Space Grotesk',sans-serif;}
+
+  /* ---- two-col before/after ---- */
+  .cols{display:flex; gap:14mm; width:100%; margin-top:10mm; align-items:stretch;}
+  .col{flex:1;}
+  .col .ch{display:inline-flex; align-items:center; gap:6px; font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:12pt; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6mm;}
+  .col .ch .ic{width:14pt;height:14pt;}
+  .col.before .ch{color:var(--muted);} .col.after .ch{color:var(--coral);}
+  .blist{list-style:none; padding:0; margin:0;}
+  .blist li{font-size:12.5pt; line-height:1.55; padding:2.4mm 0 2.4mm 9mm; position:relative; color:var(--muted);}
+  .blist li .ic{position:absolute; left:0; top:3mm; width:5.5mm; height:5.5mm;}
+  .col.before .blist li{color:var(--muted);} .col.before .blist li .ic{color:#c4988a;}
+  .col.after .blist li{color:var(--ink);} .col.after .blist li .ic{color:var(--green);}
+
+  /* ---- WhatsApp chat ---- */
+  .phone{background:var(--wa-bg); border-radius:6mm; padding:5mm; width:100%; max-width:120mm;
+    border:1px solid #d8cfc2; box-shadow:0 10px 30px rgba(0,0,0,.18);}
+  .phone .hdr{display:flex; align-items:center; gap:4mm; background:var(--teal); color:#fff;
+    margin:-5mm -5mm 5mm; padding:4mm 5mm; border-radius:6mm 6mm 0 0;}
+  .phone .av{width:9mm; height:9mm; border-radius:50%; background:#fff; color:var(--teal);
+    display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:11pt;}
+  .phone .who{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:11pt; line-height:1.1;}
+  .phone .who small{display:block; font-family:'Inter',sans-serif; font-weight:400; font-size:9.5pt; color:#BfE0E3;}
+  .b{max-width:80%; padding:3.2mm 4mm; border-radius:3mm; font-size:11pt; line-height:1.4;
+    margin:2.5mm 0; position:relative; box-shadow:0 1px 1px rgba(0,0,0,.08);}
+  .b .tm{display:block; font-size:9pt; color:#7c8a85; text-align:right; margin-top:1mm;}
+  .b.in{background:var(--wa-in); margin-right:auto; border-top-left-radius:0;}
+  .b.out{background:var(--wa-out); margin-left:auto; border-top-right-radius:0;}
+  .phone.night{background:var(--wa-night); border-color:#0a0f12;}
+  .phone.night .hdr{background:#1f2c33;}
+  .phone.night .av{background:#2a3942; color:#aebac1;}
+  .phone.night .who{color:#e9edef;} .phone.night .who small{color:#8696a0;}
+  .phone.night .b.in{background:var(--wa-in-n); color:#e9edef;}
+  .phone.night .b.out{background:var(--wa-out-n); color:#e9edef;}
+  .phone.night .b .tm{color:#8696a0;}
+  .chatwrap{display:flex; gap:12mm; align-items:center; margin-top:8mm;}
+  .chatwrap .txt{flex:1;}
+
+  /* ---- ROI panels ---- */
+  .panels{display:flex; gap:8mm; width:100%; margin-top:10mm;}
+  .panel{flex:1; background:#fff; border:1px solid var(--line); border-radius:5mm; padding:9mm 7mm; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,.06);}
+  .panel .pic{width:16mm; height:16mm; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    margin:0 auto 5mm; background:rgba(15,76,92,.08); color:var(--teal);}
+  .panel .pic .ic{width:8mm; height:8mm;}
+  .panel .k{font-size:10.5pt; color:var(--muted); line-height:1.4; min-height:14mm;}
+  .panel .big{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26pt; margin:4mm 0 2mm; color:var(--teal);}
+  .panel.hot{background:linear-gradient(140deg,var(--teal),var(--teal-deep)); border-color:var(--teal);}
+  .panel.hot .pic{background:rgba(255,255,255,.14); color:var(--amber);}
+  .panel.hot .k{color:#C7DDE0;} .panel.hot .big{color:#fff;}
+  .panel.win .pic{background:rgba(255,123,84,.16); color:var(--coral);} .panel.win .big{color:var(--coral);}
+
+  /* ---- steps ---- */
+  .steps{display:flex; gap:8mm; width:100%; margin-top:12mm;}
+  .step{flex:1; background:#fff; border:1px solid var(--line); border-radius:5mm; padding:9mm 7mm; position:relative; box-shadow:0 4px 16px rgba(0,0,0,.06);}
+  .step .sh{display:flex; align-items:center; gap:5mm; margin-bottom:5mm;}
+  .step .n{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12pt; color:#fff;
+    background:linear-gradient(140deg,var(--coral),#ff6a3d); width:12mm; height:12mm; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex:none;}
+  .step .si{width:11mm;height:11mm;border-radius:3mm;background:rgba(15,76,92,.08);color:var(--teal);
+    display:flex;align-items:center;justify-content:center;} .step .si .ic{width:6mm;height:6mm;}
+  .step h3{font-size:15pt; color:var(--teal); margin-bottom:3mm;}
+  .step p{font-size:11pt; color:var(--muted); line-height:1.5; margin:0;}
+
+  /* ---- pricing ---- */
+  .prices{display:flex; gap:8mm; width:100%; margin-top:11mm; align-items:stretch;}
+  .pc{position:relative; flex:1; background:#fff; border:1px solid var(--line); border-radius:5mm; padding:8mm 7mm; display:flex; flex-direction:column; box-shadow:0 4px 16px rgba(0,0,0,.05);}
+  .pc.feature{border:2px solid var(--coral); box-shadow:0 10px 26px rgba(255,123,84,.22);}
+  .pc .badge{position:absolute; top:-4mm; left:50%; transform:translateX(-50%); white-space:nowrap;
+    background:linear-gradient(135deg,var(--coral),#ff6a3d); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:9.5pt; letter-spacing:.06em; text-transform:uppercase; padding:2mm 5mm; border-radius:99px;
+    box-shadow:0 4px 12px rgba(255,123,84,.45);}
+  .pc .tier{display:flex; align-items:center; gap:5px; font-family:'Space Grotesk',sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.1em; font-size:10pt; color:var(--coral);}
+  .pc .tier .ic{width:13pt;height:13pt;}
+  .pc .was{font-family:'Space Grotesk',sans-serif; font-size:12pt; color:var(--muted); text-decoration:line-through; margin:3mm 0 0;}
+  .pc .amt{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:23pt; color:var(--ink); margin:1mm 0 1mm;}
+  .pc .amt small{font-size:11pt; color:var(--muted); font-weight:500;}
+  .pc .now{font-size:10.5pt; color:var(--coral); font-weight:600; font-family:'Space Grotesk',sans-serif; margin-bottom:2mm;}
+  .pc .desc{font-size:10.5pt; color:var(--muted); line-height:1.5;}
+  .anchor{display:flex; align-items:center; justify-content:center; gap:7px; margin-top:9mm; text-align:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13pt; color:var(--teal);}
+  .anchor .ic{width:15pt;height:15pt; color:var(--coral);}
+
+  /* ---- final ---- */
+  .final .line{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:18pt; line-height:1.5; color:#9FC2C6;}
+  .final .q{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:34pt; line-height:1.12; color:#fff; margin:10mm 0;}
+  .final .brand{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30pt; letter-spacing:.04em; color:var(--amber);}
+  .final .brand .dot{color:var(--coral);}
+  .final .cta{margin-top:8mm; font-size:13pt; color:#DCEAEC;}
+  .final .cta b{color:#fff;}
+
+  .pull{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15pt; line-height:1.45;
+    color:var(--teal); border-left:4px solid var(--coral); padding-left:7mm; margin-top:10mm; max-width:175mm;}
+  .honest{font-size:10pt; font-style:italic; color:var(--muted); margin-top:7mm; max-width:175mm;}
+
+  /* ---- print bar (screen only) ---- */
+  .printbar{position:fixed; top:0; left:0; right:0; background:var(--ink); color:#fff; z-index:99;
+    display:flex; align-items:center; justify-content:center; gap:6mm; padding:9px; font-size:13px;}
+  .printbar button{font:inherit; font-weight:600; background:var(--coral); color:#fff; border:0;
+    border-radius:6px; padding:6px 16px; cursor:pointer;}
+  .printbar span{opacity:.85;}
+  body{padding-top:46px;}
+  @media print{
+    @page{ size:A4 landscape; margin:0; }
+    html,body{background:#fff; padding:0; margin:0;}
+    .printbar{display:none;}
+    .page{margin:0; box-shadow:none; height:210mm; page-break-after:always; break-after:page;}
+    .page:last-child{page-break-after:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== inline SVG icon sprite ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2.5H6a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5Z"/><path d="M14 2.5v6h6M8.5 13h7M8.5 17h7"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M12 7v5l3.3 2"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8Z"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4 14h8l-1 8 9-12h-8l1-8Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><path d="M22 4 12 14l-3-3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M15 9l-6 6M9 9l6 6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 18v-6a8 8 0 0 1 16 0v6"/><path d="M20 19a2 2 0 0 1-2 2h-1a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3ZM4 19a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H4Z"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3A5 5 0 0 0 13.4 3.4L11.7 5.1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9.5 12 2l9 7.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 22V12h6v10"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M23 6 13.5 15.5 8.5 10.5 1 18"/><path d="M17 6h6v6"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6.5L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9.5V3"/><path d="M7.5 14h9"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M16.5 16.5 19 19M19 5l-2.5 2.5M7.5 16.5 5 19"/></symbol>
+  <symbol id="i-bolt-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M12 7l-2.5 5.5H13L10.5 17"/></symbol>
+</defs></svg>
+
+<div class="printbar">
+  <span>Documentary deck — 13 pages.</span>
+  <button onclick="window.print()">Save as PDF ⤓</button>
+  <span>Print → <b>Landscape</b> · Margins <b>None</b> · <b>Background graphics ON</b>.</span>
+</div>
+
+<!-- 1 · COVER  (PHOTO SLOT: style="--hero:url('assets/cover.jpg')") -->
+<section class="page hero center cover">
+  <svg class="glyph" style="width:170mm;height:170mm;right:-30mm;bottom:-40mm" aria-hidden="true"><use href="#i-chat"/></svg>
+  <div class="cover-wm">VOCILY<span class="dot">.</span> LABS</div>
+  <h1>How one WhatsApp number becomes your entire front desk</h1>
+  <div class="sub">A new communication layer for diagnostic labs</div>
+  <div class="tag">— A working demonstration. Live on WhatsApp. —</div>
+</section>
+
+<!-- 2 · THE PROBLEM  (PHOTO SLOT: style="--hero:url('assets/problem.jpg')") -->
+<section class="page hero">
+  <svg class="glyph" style="width:150mm;height:150mm;right:-26mm;top:-30mm" aria-hidden="true"><use href="#i-phone"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-phone"/></svg> The Problem</div>
+  <h1>The problem isn't testing.<br>It's communication.</h1>
+  <p class="lead" style="margin-top:8mm">Your lab does the hard part well — accurate tests, fast turnaround, trusted results. But everything a patient does <strong>before</strong> and <strong>after</strong> the test runs through one place: the phone at your front desk. One person, one line at a time. They can't be on call #3 while they're on call #2. They can't pick up at 11 PM. And every call they miss is a patient who simply dials the next lab.</p>
+  <div class="qrow">
+    <div class="qcard"><div class="chip"><span class="rs">₹</span></div><div class="t">"What's the price of a thyroid test?"</div></div>
+    <div class="qcard"><div class="chip"><svg class="ic"><use href="#i-calendar"/></svg></div><div class="t">"I want to book a test / home collection."</div></div>
+    <div class="qcard"><div class="chip"><svg class="ic"><use href="#i-file"/></svg></div><div class="t">"Is my report ready?"</div></div>
+    <div class="qcard"><div class="chip"><svg class="ic"><use href="#i-clock"/></svg></div><div class="t">"What are your timings? Are you open?"</div></div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>2 / 13</span></div>
+</section>
+
+<!-- 3 · A TYPICAL DAY -->
+<section class="page paper">
+  <svg class="glyph" style="width:130mm;height:130mm;left:-24mm;bottom:-34mm" aria-hidden="true"><use href="#i-clock"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-clock"/></svg> A Typical Day</div>
+  <h2>The same four questions — on repeat.</h2>
+  <div class="rail">
+    <div class="stop"><div class="tm">8:00</div><div class="dot"></div><div class="lb">price of a lipid profile?</div></div>
+    <div class="stop"><div class="tm">9:10</div><div class="dot"></div><div class="lb">is my report ready?</div></div>
+    <div class="stop"><div class="tm">10:25</div><div class="dot"></div><div class="lb">home collection?</div></div>
+    <div class="stop"><div class="tm">11:40</div><div class="dot"></div><div class="lb">book a CBC</div></div>
+    <div class="stop"><div class="tm">12:30</div><div class="dot"></div><div class="lb">is my report ready?</div></div>
+    <div class="stop"><div class="tm">1:15</div><div class="dot"></div><div class="lb">thyroid rate?</div></div>
+    <div class="stop"><div class="tm">4:50</div><div class="dot"></div><div class="lb">what time you close?</div></div>
+    <div class="stop"><div class="tm">6:20</div><div class="dot"></div><div class="lb">is my report ready?</div></div>
+    <div class="stop miss"><div class="tm">9:30 PM</div><div class="dot"><svg class="ic"><use href="#i-x"/></svg></div><div class="lb">Missed — closed</div></div>
+  </div>
+  <p class="lead">Your staff answer the same handful of questions hundreds of times a week. And the calls that come <strong>after hours don't get asked twice</strong> — they go to whichever lab opens first tomorrow.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>3 / 13</span></div>
+</section>
+
+<!-- 4 · THE HIDDEN COST -->
+<section class="page coral">
+  <svg class="glyph" style="width:150mm;height:150mm;right:-26mm;bottom:-40mm" aria-hidden="true"><use href="#i-trend"/></svg>
+  <div class="kicker" style="color:#7a2e15"><svg class="ic"><use href="#i-trend"/></svg> The Hidden Cost</div>
+  <h1 style="font-size:34pt; max-width:200mm">Every missed call is a test that went somewhere else.</h1>
+  <div class="huge">₹40,000–60,000</div>
+  <p class="lead" style="font-size:15pt; color:#5a2a18; max-width:210mm; margin-top:-4mm">…a month in tests that quietly walked out the door. A busy lab takes <strong>40–80 calls a day</strong>; when the line's engaged or the shutter is down, <strong>15–30%</strong> go unanswered — and an average test is worth <strong>₹300–1,500</strong>.</p>
+  <p class="foot-note" style="color:#5a2a18">Illustrative ranges — not a promise. We calculate this live, with <strong>your</strong> real call volume and test values.</p>
+  <div class="foot"><span class="wm" style="color:#7a2e15">VOCILY<span class="dot">.</span> LABS</span><span style="color:#7a2e15">4 / 13</span></div>
+</section>
+
+<!-- 5 · INTRODUCING VOCILY -->
+<section class="page paper center">
+  <svg class="glyph" style="width:140mm;height:140mm;left:-30mm;top:-34mm" aria-hidden="true"><use href="#i-chat"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-spark"/></svg> Introducing Vocily</div>
+  <h1>Meet the front desk that never sleeps.</h1>
+  <div class="flow">
+    <div class="node"><svg class="ic"><use href="#i-user"/></svg>Patient</div><span class="arrow">→</span>
+    <div class="node"><svg class="ic"><use href="#i-chat"/></svg>WhatsApp</div><span class="arrow">→</span>
+    <div class="node accent"><svg class="ic"><use href="#i-zap"/></svg>Vocily</div><span class="arrow">→</span>
+    <div class="node"><svg class="ic"><use href="#i-flask"/></svg>Your Lab</div>
+  </div>
+  <div class="verbs">
+    <span class="verb"><svg class="ic"><use href="#i-chat"/></svg><b>answers</b> prices &amp; timings</span>
+    <span class="verb"><svg class="ic"><use href="#i-calendar"/></svg><b>books</b> tokens &amp; home visits</span>
+    <span class="verb"><svg class="ic"><use href="#i-file"/></svg><b>updates</b> report status</span>
+    <span class="verb"><svg class="ic"><use href="#i-moon"/></svg><b>captures</b> after-hours requests</span>
+  </div>
+  <p class="lead" style="text-align:center; margin-top:10mm; max-width:200mm">Patients message the WhatsApp number you already have, in Marathi, Hindi, or English. <strong>No app to download. No portal to log into. Nothing for your staff to learn.</strong> To your patient, it just looks like your lab started replying — 24×7.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>5 / 13</span></div>
+</section>
+
+<!-- 6 · PATIENT JOURNEY -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-user"/></svg> The Patient Journey</div>
+  <h2>From a missed call to a confirmed booking — in four messages.</h2>
+  <div class="cols">
+    <div class="col before" style="flex:.7">
+      <div class="ch"><svg class="ic"><use href="#i-x"/></svg> Before</div>
+      <ul class="blist">
+        <li><svg class="ic"><use href="#i-x"/></svg>Call → busy.</li>
+        <li><svg class="ic"><use href="#i-x"/></svg>Call again → busy.</li>
+        <li><svg class="ic"><use href="#i-x"/></svg>Gives up — calls a different lab.</li>
+      </ul>
+    </div>
+    <div class="col after" style="flex:1.3">
+      <div class="ch"><svg class="ic"><use href="#i-check"/></svg> After — any hour</div>
+      <div class="phone">
+        <div class="hdr"><div class="av">C</div><div class="who">City Pathology Lab<small>online</small></div></div>
+        <div class="b out">mujhe thyroid test karwana hai<span class="tm">7:48 PM</span></div>
+        <div class="b in">Sure! What's your name?<span class="tm">7:48 PM</span></div>
+        <div class="b out">Abhishek<span class="tm">7:49 PM</span></div>
+        <div class="b in">✅ Booked! Token <b>#7</b> — show this at the desk.<br>Ref: VOC-20260617-007<span class="tm">7:49 PM</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>6 / 13</span></div>
+</section>
+
+<!-- 7 · STAFF JOURNEY -->
+<section class="page paper">
+  <svg class="glyph" style="width:120mm;height:120mm;right:-22mm;top:-28mm" aria-hidden="true"><use href="#i-user"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-user"/></svg> The Staff Journey</div>
+  <h2>Your team stops being a switchboard.</h2>
+  <div class="cols">
+    <div class="col before">
+      <div class="ch"><svg class="ic"><use href="#i-phone"/></svg> Before — all day</div>
+      <ul class="blist">
+        <li><svg class="ic"><use href="#i-x"/></svg>Quote the same prices</li>
+        <li><svg class="ic"><use href="#i-x"/></svg>Repeat the same timings</li>
+        <li><svg class="ic"><use href="#i-x"/></svg>Check the same "is it ready yet?"</li>
+        <li><svg class="ic"><use href="#i-x"/></svg>Take bookings between walk-ins</li>
+      </ul>
+    </div>
+    <div class="col after">
+      <div class="ch"><svg class="ic"><use href="#i-check"/></svg> After</div>
+      <ul class="blist">
+        <li><svg class="ic"><use href="#i-check"/></svg>Care for the patient standing in front of them.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="pull">Vocily doesn't replace your front desk. It removes the interruptions — so the people you already pay can do the work only a person can do.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>7 / 13</span></div>
+</section>
+
+<!-- 8 · REPORT DELIVERY -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-file"/></svg> Report Delivery</div>
+  <h2>The "is my report ready?" call — gone.</h2>
+  <div class="chatwrap">
+    <div class="txt">
+      <div class="flow" style="justify-content:flex-start; margin:6mm 0 8mm; gap:5mm">
+        <div class="node" style="font-size:10.5pt; padding:5mm 5mm; min-width:28mm"><svg class="ic"><use href="#i-user"/></svg>Staff post<br>the number</div><span class="arrow">→</span>
+        <div class="node accent" style="font-size:10.5pt; padding:5mm 5mm; min-width:28mm"><svg class="ic"><use href="#i-zap"/></svg>Vocily<br>matches it</div><span class="arrow">→</span>
+        <div class="node" style="font-size:10.5pt; padding:5mm 5mm; min-width:28mm"><svg class="ic"><use href="#i-check"/></svg>Patient<br>notified</div>
+      </div>
+      <p class="lead" style="font-size:12.5pt">When a report is done, your staff post the patient's number into a private staff group. Vocily matches it to the booking and notifies the patient <strong>instantly</strong> — no one at the desk lifts the phone.</p>
+      <p class="honest">In production, the report <strong>PDF itself</strong> arrives in the patient's chat — securely, inside their own WhatsApp, never as a public link.</p>
+    </div>
+    <div class="phone" style="max-width:105mm">
+      <div class="hdr"><div class="av">C</div><div class="who">City Pathology Lab<small>online</small></div></div>
+      <div class="b in">📄 Hi Priya, your <b>CBC</b> report is ready! ✅ Our desk will share it shortly.<span class="tm">5:02 PM</span></div>
+      <div class="b out" style="background:#cfe9d4">✅ <i>(staff group)</i> Marked Priya — CBC as <b>Ready</b> and notified the patient.<span class="tm">5:02 PM</span></div>
+    </div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>8 / 13</span></div>
+</section>
+
+<!-- 9 · MAGIC MOMENT  (PHOTO SLOT: style="--hero:url('assets/night.jpg')") -->
+<section class="page hero">
+  <svg class="glyph" style="width:150mm;height:150mm;right:-24mm;top:-30mm" aria-hidden="true"><use href="#i-moon"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-moon"/></svg> The Magic Moment</div>
+  <div class="chatwrap" style="align-items:center">
+    <div class="phone night" style="max-width:108mm">
+      <div class="hdr"><div class="av">C</div><div class="who">City Pathology Lab<small>11:43 PM</small></div></div>
+      <div class="b out">Need a thyroid test tomorrow morning<span class="tm">11:43 PM</span></div>
+      <div class="b in">Thank you — your request is saved (Ref <b>#204</b>). We're closed right now (open 7 AM); our team will call you first thing to confirm. 🌙<span class="tm">11:43 PM</span></div>
+    </div>
+    <div class="txt">
+      <h1 style="font-size:30pt; color:#fff">Your front desk just worked while the lab slept.</h1>
+      <p class="lead" style="margin-top:8mm">That's a booking that used to go to whoever opened first. Now it's yours.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>9 / 13</span></div>
+</section>
+
+<!-- 10 · ROI -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-trend"/></svg> The Return</div>
+  <h2>Cheaper than a fraction of one salary.</h2>
+  <div class="panels">
+    <div class="panel">
+      <div class="pic"><svg class="ic"><use href="#i-user"/></svg></div>
+      <div class="k">A front-desk seat in Aurangabad — and one person still can't cover nights or call #3.</div>
+      <div class="big">₹14–18k</div><div class="k" style="min-height:0">per month</div>
+    </div>
+    <div class="panel hot">
+      <div class="pic"><svg class="ic"><use href="#i-bolt-clock"/></svg></div>
+      <div class="k">Vocily runs 24×7, every day, never on a break.</div>
+      <div class="big">from ₹1,499</div><div class="k" style="min-height:0; color:#C7DDE0">per month</div>
+    </div>
+    <div class="panel win">
+      <div class="pic"><svg class="ic"><use href="#i-trend"/></svg></div>
+      <div class="k">Illustrative recovery — even 2–3 missed bookings a day, brought back.</div>
+      <div class="big">₹40–60k</div><div class="k" style="min-height:0">per month (illustrative)</div>
+    </div>
+  </div>
+  <p class="honest" style="text-align:center; margin-top:9mm; font-size:11pt">We don't guess your ROI — we calculate it <strong>with you</strong>, from your real numbers.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>10 / 13</span></div>
+</section>
+
+<!-- 11 · IMPLEMENTATION -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-pulse"/></svg> Implementation</div>
+  <h2>Live in 3 days.</h2>
+  <div class="steps">
+    <div class="step"><div class="sh"><div class="n">1</div><div class="si"><svg class="ic"><use href="#i-sliders"/></svg></div></div><h3>Configure</h3><p>We load your tests, prices, timings, and branding into the system.</p></div>
+    <div class="step"><div class="sh"><div class="n">2</div><div class="si"><svg class="ic"><use href="#i-link"/></svg></div></div><h3>Connect</h3><p>We connect your WhatsApp and test every flow end-to-end.</p></div>
+    <div class="step"><div class="sh"><div class="n">3</div><div class="si"><svg class="ic"><use href="#i-pulse"/></svg></div></div><h3>Go live</h3><p>Patients start booking and self-serving. You watch it work.</p></div>
+  </div>
+  <p class="pull" style="border:0; padding:0; margin-top:12mm; text-align:center; max-width:none">Nothing to install. Nothing for your staff to learn. We do the setup — you keep doing what you do.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>11 / 13</span></div>
+</section>
+
+<!-- 12 · PRICING -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-spark"/></svg> Pricing</div>
+  <h2>Pick the front desk that fits.</h2>
+  <div class="prices">
+    <div class="pc">
+      <div class="tier"><svg class="ic"><use href="#i-zap"/></svg>Wedge</div>
+      <div class="amt">₹1,499<small>/mo</small></div>
+      <div class="desc"><i>₹999 intro.</i><br>Booking + reminders + report-ready alerts.</div>
+    </div>
+    <div class="pc feature">
+      <div class="badge">★ First 10 labs</div>
+      <div class="tier"><svg class="ic"><use href="#i-trend"/></svg>Growth</div>
+      <div class="was">₹3,499–4,999/mo</div>
+      <div class="amt">₹1,499<small>/mo</small></div>
+      <div class="now">Founding price — first 10 labs only</div>
+      <div class="desc">Everything in Wedge, plus price/FAQ answers, report-status self-serve, after-hours capture, and home collection.</div>
+    </div>
+    <div class="pc">
+      <div class="tier"><svg class="ic"><use href="#i-headset"/></svg>Premium</div>
+      <div class="was">₹9,999+/mo</div>
+      <div class="amt">₹6,000<small>/mo</small></div>
+      <div class="now">Discounted launch price</div>
+      <div class="desc">Everything in Growth, plus an inbound voice receptionist (when ready).</div>
+    </div>
+  </div>
+  <div class="anchor"><svg class="ic"><use href="#i-user"/></svg> Less than a fraction of one ₹14,000–18,000 receptionist — working 24×7.</div>
+  <p class="honest" style="text-align:center">Final pricing confirmed on signup.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>12 / 13</span></div>
+</section>
+
+<!-- 13 · FINAL  (PHOTO SLOT: style="--hero:url('assets/final.jpg')") -->
+<section class="page hero center final">
+  <svg class="glyph" style="width:175mm;height:175mm;left:-35mm;bottom:-45mm" aria-hidden="true"><use href="#i-chat"/></svg>
+  <div class="line">Every day, your lab misses calls.<br>Every day, patients wait for updates.<br>Every day, your staff repeats the same four answers.</div>
+  <div class="q">What happens when<br>communication runs itself?</div>
+  <div class="brand">VOCILY<span class="dot">.</span> LABS</div>
+  <div class="cta"><b>See it live — on your own lab's brand.</b> Book a 10-minute demo.<br>📞 ____________________ &nbsp;·&nbsp; ✉ ____________________</div>
+</section>
+
+</body>
+</html>

@@ -1,21 +1,22 @@
 # Screenshot Shot-List & Export Guide
 
-The deck (`index.html`) ships **complete** — every chat is recreated as a faithful WhatsApp-style
-bubble using the **real bot copy**. Real screenshots are an **optional credibility upgrade** you can
-swap in. This file tells you exactly what to capture, how to keep it anonymized, and how to export
-the final PDF.
+The decks (`deck-en.html` / `deck-hi.html` / `deck-mr.html`) ship **complete** — every chat is
+recreated as a faithful WhatsApp-style bubble using the **real bot copy**. (`index.html` is the
+language-chooser launcher.) Real screenshots are an **optional credibility upgrade** you can swap in.
+This file tells you exactly what to capture, how to keep it anonymized, and how to export the PDF.
 
 ---
 
-## A. Export the deck to PDF (do this first — it works as-is)
-1. Open `index.html` in **Google Chrome** (double-click, or drag into a tab).
+## A. Get the PDF (do this first — it works as-is)
+**Easiest:** open the launcher `index.html`, pick a language, and click **⤓ Download PDF** — the
+ready-made PDF downloads instantly.
+
+**Or export fresh from a deck:**
+1. Open a deck file (`deck-en.html` / `deck-hi.html` / `deck-mr.html`) in **Google Chrome**.
 2. `Ctrl/Cmd + P` → **Print**.
 3. Set: **Destination** = *Save as PDF* · **Layout** = *Landscape* · **Margins** = *None* ·
    **More settings → Background graphics = ON** (critical — otherwise colors print white).
 4. Confirm the preview shows **13 clean pages**, nothing cut across a break. Save.
-
-> The top "Save as PDF" button in the deck just triggers this print dialog — you still set the
-> options above.
 
 ---
 
@@ -33,17 +34,19 @@ Capture from a **second phone**, then crop/relabel so the lab name reads neutral
 "City Pathology Lab" before pasting. The body text is already brand-neutral.
 
 **To use a screenshot instead of the CSS chat:** replace the relevant `<div class="phone">…</div>`
-block in `index.html` with `<img src="assets/page6.png" style="max-width:120mm; border-radius:6mm">`
-(drop the image in an `assets/` folder next to `index.html`).
+block in the deck file (`deck-en.html` / `deck-hi.html` / `deck-mr.html`) with
+`<img src="assets/page6.png" style="max-width:120mm; border-radius:6mm">` (drop the image in an
+`assets/` folder next to the deck files).
 
 ---
 
 ## C. Hero photo slots (4 pages — optional, for the documentary feel)
 The deck looks finished with **no photos** (each hero page is a designed dark-teal gradient with a
 faint glyph). To turn a page into a full-bleed **photo background**, drop a JPG in an `assets/`
-folder next to `index.html` and set one attribute on that page's `<section>`:
+folder next to the deck files and set one attribute on that page's `<section>` (in whichever deck
+you want it — `deck-en.html` / `deck-hi.html` / `deck-mr.html`):
 
-| Page | Edit (already marked with a comment in `index.html`) | Suggested image |
+| Page | Edit (already marked with a comment in the deck file) | Suggested image |
 |---|---|---|
 | **1 · Cover** | `<section class="page hero center cover" style="--hero:url('assets/cover.jpg')">` | a warm lab/reception or a hand holding a phone |
 | **2 · Problem** | `<section class="page hero" style="--hero:url('assets/problem.jpg')">` | a busy front desk / ringing phone |
