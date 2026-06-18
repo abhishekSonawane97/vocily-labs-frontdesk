@@ -197,6 +197,30 @@
     font-family:'Baloo 2',sans-serif; font-weight:600; font-size:13pt; color:var(--teal);}
   .anchor .ic{width:15pt;height:15pt; color:var(--coral);}
 
+  /* ---- revenue day-calculator (v2) ---- */
+  .calc{display:flex; align-items:stretch; width:100%; background:#fff; border-radius:5mm;
+    padding:9mm 4mm; box-shadow:0 14px 36px rgba(0,0,0,.18); margin:9mm 0 6mm;}
+  .calc .cell{flex:1; text-align:center; padding:0 5mm; display:flex; flex-direction:column; justify-content:center;}
+  .calc .cell + .cell{border-left:1px dashed var(--line);}
+  .calc .cn{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:34pt; line-height:1; color:var(--teal);}
+  .calc .cell.bad .cn{color:var(--coral);}
+  .calc .cl{font-size:10.5pt; color:var(--muted); margin-top:4mm; line-height:1.35;}
+  .calc .cell.bad .cl{color:var(--coral); font-weight:600;}
+
+  /* ---- comparison table (v2) ---- */
+  .vs{width:100%; margin-top:7mm; border:1px solid var(--line); border-radius:5mm; overflow:hidden;
+    box-shadow:0 6px 22px rgba(0,0,0,.07); background:#fff;}
+  .vs .vrow{display:grid; grid-template-columns:1fr 1.05fr 1fr; align-items:center;}
+  .vs .vrow + .vrow{border-top:1px solid var(--line);}
+  .vs .vrow.head{background:linear-gradient(140deg,var(--teal),var(--teal-deep)); color:#fff;}
+  .vs .lc,.vs .rc{padding:4.5mm 8mm; font-size:12.5pt;}
+  .vs .lc{text-align:right; color:var(--muted);}
+  .vs .rc{text-align:left; color:var(--teal); font-weight:700; font-family:'Baloo 2',sans-serif;}
+  .vs .ml{text-align:center; font-size:10pt; letter-spacing:.04em; color:var(--muted);}
+  .vs .vrow.head .lc{color:#C7DDE0; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14pt;}
+  .vs .vrow.head .rc{color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14pt;}
+  .vs .vrow.head .ml{color:#9FC2C6;}
+
   .final .line{font-family:'Baloo 2',sans-serif; font-weight:600; font-size:18pt; line-height:1.6; color:#9FC2C6;}
   .final .q{font-family:'Baloo 2',sans-serif; font-weight:700; font-size:32pt; line-height:1.2; color:#fff; margin:10mm 0;}
   .final .brand{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30pt; letter-spacing:.04em; color:var(--amber);}
@@ -275,10 +299,28 @@
     <div class="qcard"><div class="chip"><svg class="ic"><use href="#i-file"/></svg></div><div class="t">"मेरी रिपोर्ट तैयार है क्या?"</div></div>
     <div class="qcard"><div class="chip"><svg class="ic"><use href="#i-clock"/></svg></div><div class="t">"टाइमिंग क्या है? अभी खुला है?"</div></div>
   </div>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>2 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>2 / 15</span></div>
 </section>
 
-<!-- 3 · A TYPICAL DAY -->
+<!-- 3 · MAGIC MOMENT (moved up — emotional hook)  (PHOTO SLOT: style="--hero:url('assets/night.jpg')") -->
+<section class="page hero">
+  <svg class="glyph" style="width:150mm;height:150mm;right:-24mm;top:-30mm" aria-hidden="true"><use href="#i-moon"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-moon"/></svg> वो खास पल</div>
+  <div class="chatwrap" style="align-items:center">
+    <div class="phone night" style="max-width:108mm">
+      <div class="hdr"><div class="av">सि</div><div class="who">सिटी पैथोलॉजी लैब<small>11:43 PM</small></div></div>
+      <div class="b out">कल सुबह थायरॉइड टेस्ट चाहिए<span class="tm">11:43 PM</span></div>
+      <div class="b in">धन्यवाद! आपकी रिक्वेस्ट नोट कर ली है (Ref <b>#204</b>). हम अभी बंद हैं (सुबह 7 बजे खुलते हैं) — सुबह हमारी टीम कॉल करके कन्फर्म कर देगी. 🌙<span class="tm">11:43 PM</span></div>
+    </div>
+    <div class="txt">
+      <h1 style="font-size:28pt; color:#fff">लैब सो रही थी, पर आपका फ्रंट डेस्क चालू था.</h1>
+      <p class="lead" style="margin-top:8mm">यही बुकिंग पहले दूसरी लैब को चली जाती थी. अब ये आपकी है.</p>
+    </div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>3 / 15</span></div>
+</section>
+
+<!-- 4 · A TYPICAL DAY -->
 <section class="page paper">
   <svg class="glyph" style="width:130mm;height:130mm;left:-24mm;bottom:-34mm" aria-hidden="true"><use href="#i-clock"/></svg>
   <div class="kicker"><svg class="ic"><use href="#i-clock"/></svg> एक आम दिन</div>
@@ -295,21 +337,26 @@
     <div class="stop miss"><div class="tm">9:30 PM</div><div class="dot"><svg class="ic"><use href="#i-x"/></svg></div><div class="lb">छूट गया — बंद</div></div>
   </div>
   <p class="lead">वही चंद सवाल, दिन भर, रोज़. और रात को छूटा कॉल दोबारा नहीं आता — वो कल जो लैब पहले खुलेगी, <strong>उधर चला जाता है</strong>.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>3 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>4 / 15</span></div>
 </section>
 
-<!-- 4 · THE HIDDEN COST -->
+<!-- 5 · WHY LABS LOSE REVENUE (v2) -->
 <section class="page coral">
   <svg class="glyph" style="width:150mm;height:150mm;right:-26mm;bottom:-40mm" aria-hidden="true"><use href="#i-trend"/></svg>
-  <div class="kicker" style="color:#7a2e15"><svg class="ic"><use href="#i-trend"/></svg> छुपा नुकसान</div>
-  <h1 style="font-size:32pt; max-width:210mm">हर छूटा कॉल मतलब एक टेस्ट जो कहीं और चली गई.</h1>
-  <div class="huge">₹40,000–60,000</div>
-  <p class="lead" style="font-size:15pt; color:#5a2a18; max-width:215mm; margin-top:-4mm">…हर महीने — चुपचाप हाथ से निकली टेस्ट. बिज़ी लैब को रोज़ <strong>40–80 कॉल</strong> आते हैं. लाइन बिज़ी हो या लैब बंद, तो उनमें से <strong>15–30%</strong> कॉल कोई उठाता ही नहीं. और एक टेस्ट की कीमत करीब <strong>₹300–1,500</strong>.</p>
-  <p class="foot-note" style="color:#5a2a18">ये सिर्फ़ एक उदाहरण है — कोई गारंटी नहीं. <strong>आपके</strong> असली आंकड़े लेकर हम आपके सामने ही हिसाब करके दिखाएंगे.</p>
-  <div class="foot"><span class="wm" style="color:#7a2e15">VOCILY<span class="dot">.</span> LABS</span><span style="color:#7a2e15">4 / 13</span></div>
+  <div class="kicker" style="color:#7a2e15"><svg class="ic"><use href="#i-trend"/></svg> रोज़ छूटती कमाई</div>
+  <h1 style="font-size:30pt; max-width:210mm; color:#2A0E04">एक आम सोमवार का हिसाब लगाइए.</h1>
+  <div class="calc">
+    <div class="cell"><div class="cn">67</div><div class="cl">कॉल आए</div></div>
+    <div class="cell"><div class="cn">12</div><div class="cl">किसी ने नहीं उठाए<br>(बिज़ी / बंद टाइम)</div></div>
+    <div class="cell"><div class="cn">5</div><div class="cl">टेस्ट बुक करते</div></div>
+    <div class="cell bad"><div class="cn">₹3,500</div><div class="cl">उसी दिन हाथ से गए</div></div>
+  </div>
+  <p class="lead" style="color:#5a2a18; font-size:14pt; max-width:220mm; margin-top:0">एक औसत <strong>₹700</strong> की टेस्ट से, यानी एक ही दिन में <strong>₹3,500 गए</strong> — महीने का करीब <strong>₹40,000–60,000</strong>, चुपचाप उस लैब को जो फोन उठा लेती है.</p>
+  <p class="foot-note" style="color:#5a2a18">ये सिर्फ़ उदाहरण है — अपने असली कॉल बताइए, हिसाब हम आपके सामने <strong>आपके</strong> नंबरों से करेंगे.</p>
+  <div class="foot"><span class="wm" style="color:#7a2e15">VOCILY<span class="dot">.</span> LABS</span><span style="color:#7a2e15">5 / 15</span></div>
 </section>
 
-<!-- 5 · INTRODUCING VOCILY -->
+<!-- 6 · INTRODUCING VOCILY -->
 <section class="page paper center">
   <svg class="glyph" style="width:140mm;height:140mm;left:-30mm;top:-34mm" aria-hidden="true"><use href="#i-chat"/></svg>
   <div class="kicker"><svg class="ic"><use href="#i-spark"/></svg> मिलिए — Vocily</div>
@@ -327,10 +374,10 @@
     <span class="verb"><svg class="ic"><use href="#i-moon"/></svg><b>पकड़ लेता है</b> टाइम के बाद की रिक्वेस्ट</span>
   </div>
   <p class="lead" style="text-align:center; margin-top:10mm; max-width:205mm">पेशंट आपके उसी पुराने WhatsApp नंबर पर मैसेज करते हैं — हिंदी, मराठी, इंग्लिश, किसी में भी. <strong>ना कोई ऐप, ना लॉगिन, ना स्टाफ को कुछ सिखाना.</strong> पेशंट को बस इतना दिखता है — आपकी लैब अब 24×7 जवाब देती है.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>5 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>6 / 15</span></div>
 </section>
 
-<!-- 6 · PATIENT JOURNEY -->
+<!-- 7 · PATIENT JOURNEY -->
 <section class="page paper">
   <div class="kicker"><svg class="ic"><use href="#i-user"/></svg> पेशंट का सफ़र</div>
   <h2>छूटे कॉल से पक्की बुकिंग तक — बस चार मैसेज में.</h2>
@@ -354,10 +401,10 @@
       </div>
     </div>
   </div>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>6 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>7 / 15</span></div>
 </section>
 
-<!-- 7 · STAFF JOURNEY -->
+<!-- 8 · STAFF JOURNEY -->
 <section class="page paper">
   <svg class="glyph" style="width:120mm;height:120mm;right:-22mm;top:-28mm" aria-hidden="true"><use href="#i-user"/></svg>
   <div class="kicker"><svg class="ic"><use href="#i-user"/></svg> आपकी टीम का सफ़र</div>
@@ -380,10 +427,10 @@
     </div>
   </div>
   <p class="pull">Vocily आपके लोगों की जगह नहीं लेता. बस बीच की झंझट हटा देता है — ताकि आपके लोग वही करें जो सिर्फ़ इंसान कर सकता है.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>7 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>8 / 15</span></div>
 </section>
 
-<!-- 8 · REPORT DELIVERY -->
+<!-- 9 · REPORT DELIVERY -->
 <section class="page paper">
   <div class="kicker"><svg class="ic"><use href="#i-file"/></svg> रिपोर्ट डिलिवरी</div>
   <h2>"रिपोर्ट तैयार है क्या?" वाला कॉल — अब बंद.</h2>
@@ -403,25 +450,7 @@
       <div class="b out" style="background:#cfe9d4">✅ <i>(स्टाफ ग्रुप)</i> प्रिया — CBC <b>'तैयार'</b> किया और पेशंट को बता दिया.<span class="tm">5:02 PM</span></div>
     </div>
   </div>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>8 / 13</span></div>
-</section>
-
-<!-- 9 · MAGIC MOMENT  (PHOTO SLOT: style="--hero:url('assets/night.jpg')") -->
-<section class="page hero">
-  <svg class="glyph" style="width:150mm;height:150mm;right:-24mm;top:-30mm" aria-hidden="true"><use href="#i-moon"/></svg>
-  <div class="kicker"><svg class="ic"><use href="#i-moon"/></svg> वो खास पल</div>
-  <div class="chatwrap" style="align-items:center">
-    <div class="phone night" style="max-width:108mm">
-      <div class="hdr"><div class="av">सि</div><div class="who">सिटी पैथोलॉजी लैब<small>11:43 PM</small></div></div>
-      <div class="b out">कल सुबह थायरॉइड टेस्ट चाहिए<span class="tm">11:43 PM</span></div>
-      <div class="b in">धन्यवाद! आपकी रिक्वेस्ट नोट कर ली है (Ref <b>#204</b>). हम अभी बंद हैं (सुबह 7 बजे खुलते हैं) — सुबह हमारी टीम कॉल करके कन्फर्म कर देगी. 🌙<span class="tm">11:43 PM</span></div>
-    </div>
-    <div class="txt">
-      <h1 style="font-size:28pt; color:#fff">लैब सो रही थी, पर आपका फ्रंट डेस्क चालू था.</h1>
-      <p class="lead" style="margin-top:8mm">यही बुकिंग पहले दूसरी लैब को चली जाती थी. अब ये आपकी है.</p>
-    </div>
-  </div>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>9 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>9 / 15</span></div>
 </section>
 
 <!-- 10 · ROI -->
@@ -446,10 +475,39 @@
     </div>
   </div>
   <p class="honest" style="text-align:center; margin-top:9mm; font-size:11pt">रिटर्न हम अंदाज़े से नहीं बताते — आपके असली आंकड़े लेकर <strong>आपके साथ</strong> निकालते हैं.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>10 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>10 / 15</span></div>
 </section>
 
-<!-- 11 · IMPLEMENTATION -->
+<!-- 11 · RECEPTIONIST vs VOCILY (v2) -->
+<section class="page paper">
+  <div class="kicker"><svg class="ic"><use href="#i-user"/></svg> सीधा सवाल</div>
+  <h2>"एक और रिसेप्शनिस्ट क्यों न रख लें?"</h2>
+  <div class="vs">
+    <div class="vrow head"><div class="lc">नया रिसेप्शनिस्ट</div><div class="ml"></div><div class="rc">Vocily</div></div>
+    <div class="vrow"><div class="lc">₹15,000–18,000 / माह</div><div class="ml">महीने का खर्च</div><div class="rc">₹1,499 / माह</div></div>
+    <div class="vrow"><div class="lc">दिन के 8 घंटे</div><div class="ml">काम के घंटे</div><div class="rc">24×7</div></div>
+    <div class="vrow"><div class="lc">छुट्टी, बीमारी</div><div class="ml">छुट्टियाँ</div><div class="rc">कभी नहीं</div></div>
+    <div class="vrow"><div class="lc">नहीं</div><div class="ml">रात और छुट्टियाँ</div><div class="rc">हमेशा चालू</div></div>
+    <div class="vrow"><div class="lc">एक बार में एक</div><div class="ml">एक साथ बातचीत</div><div class="rc">अनगिनत</div></div>
+  </div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>11 / 15</span></div>
+</section>
+
+<!-- 12 · NOTHING CHANGES (v2) -->
+<section class="page paper">
+  <svg class="glyph" style="width:130mm;height:130mm;right:-22mm;bottom:-30mm" aria-hidden="true"><use href="#i-check"/></svg>
+  <div class="kicker"><svg class="ic"><use href="#i-check"/></svg> कोई रिस्क नहीं, कोई झंझट नहीं</div>
+  <h2>कुछ नहीं बदलता — सिर्फ़ झंझट खत्म होती है.</h2>
+  <div class="panels">
+    <div class="panel"><div class="pic"><svg class="ic"><use href="#i-chat"/></svg></div><div class="k" style="min-height:0"><strong>आपके पेशंट</strong><br>वही WhatsApp इस्तेमाल करते हैं, जो पहले से उनके फोन में है.</div></div>
+    <div class="panel"><div class="pic"><svg class="ic"><use href="#i-user"/></svg></div><div class="k" style="min-height:0"><strong>आपका स्टाफ</strong><br>वही WhatsApp, बिल्कुल वैसे ही जैसे अभी करता है.</div></div>
+    <div class="panel"><div class="pic"><svg class="ic"><use href="#i-file"/></svg></div><div class="k" style="min-height:0"><strong>आपकी रिपोर्ट</strong><br>उसी लैब सॉफ्टवेयर में रहती हैं जो आप पहले से चलाते हैं.</div></div>
+  </div>
+  <p class="pull" style="border:0; padding:0; margin-top:10mm; text-align:center; max-width:none">Vocily बस बीच में बैठ जाता है. <strong>ना नया ऐप. ना नया सॉफ्टवेयर. ना स्टाफ को ट्रेनिंग. ना कंट्रोल छूटता.</strong></p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>12 / 15</span></div>
+</section>
+
+<!-- 13 · IMPLEMENTATION -->
 <section class="page paper">
   <div class="kicker"><svg class="ic"><use href="#i-pulse"/></svg> शुरुआत</div>
   <h2>सिर्फ़ 3 दिन में लाइव.</h2>
@@ -459,47 +517,43 @@
     <div class="step"><div class="sh"><div class="n">3</div><div class="si"><svg class="ic"><use href="#i-pulse"/></svg></div></div><h3>लाइव</h3><p>पेशंट खुद बुकिंग करने लगते हैं. आप बस देखते हैं.</p></div>
   </div>
   <p class="pull" style="border:0; padding:0; margin-top:12mm; text-align:center; max-width:none">कुछ इंस्टॉल नहीं. स्टाफ को कुछ सिखाना नहीं. सेटअप हमारा काम — आप अपना काम करते रहिए.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>11 / 13</span></div>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>13 / 15</span></div>
 </section>
 
-<!-- 12 · PRICING -->
+<!-- 14 · PRICING (v2) -->
 <section class="page paper">
   <div class="kicker"><svg class="ic"><use href="#i-spark"/></svg> कीमत</div>
-  <h2>अपने लिए सही फ्रंट डेस्क चुनिए.</h2>
+  <h2>सीधी, ईमानदार कीमत.</h2>
   <div class="prices">
     <div class="pc">
-      <div class="tier"><svg class="ic"><use href="#i-zap"/></svg>Wedge</div>
+      <div class="tier"><svg class="ic"><use href="#i-zap"/></svg>Starter</div>
       <div class="amt">₹1,499<small>/माह</small></div>
-      <div class="desc"><i>₹999 शुरुआती.</i><br>बुकिंग + रिमाइंडर + रिपोर्ट-तैयार अलर्ट.</div>
+      <div class="desc">बुकिंग + रिमाइंडर + रिपोर्ट-तैयार अलर्ट.</div>
     </div>
     <div class="pc feature">
-      <div class="badge">★ पहली 10 लैब</div>
-      <div class="tier"><svg class="ic"><use href="#i-trend"/></svg>Growth</div>
-      <div class="was">₹3,499–4,999/माह</div>
-      <div class="amt">₹1,499<small>/माह</small></div>
-      <div class="now">फाउंडिंग कीमत — सिर्फ़ पहली 10 लैब के लिए</div>
-      <div class="desc">Wedge का सब कुछ, साथ में रेट/सवालों के जवाब, रिपोर्ट-स्टेटस सेल्फ-सर्व, टाइम के बाद की नोट, और होम कलेक्शन.</div>
+      <div class="badge">★ ज़्यादातर लैब यही लेती हैं</div>
+      <div class="tier"><svg class="ic"><use href="#i-trend"/></svg>Professional</div>
+      <div class="amt">₹3,499<small>/माह</small></div>
+      <div class="desc">Starter का सब कुछ, साथ में रेट/सवालों के जवाब, रिपोर्ट-स्टेटस सेल्फ-सर्व, टाइम के बाद की नोट, और होम कलेक्शन.</div>
     </div>
     <div class="pc">
       <div class="tier"><svg class="ic"><use href="#i-headset"/></svg>Premium</div>
-      <div class="was">₹9,999+/माह</div>
       <div class="amt">₹6,000<small>/माह</small></div>
-      <div class="now">डिस्काउंट लॉन्च कीमत</div>
-      <div class="desc">Growth का सब कुछ, साथ में इनबाउंड वॉइस रिसेप्शनिस्ट (तैयार होने पर).</div>
+      <div class="desc">Professional का सब कुछ, साथ में इनबाउंड वॉइस रिसेप्शनिस्ट (तैयार होने पर).</div>
     </div>
   </div>
-  <div class="anchor"><svg class="ic"><use href="#i-user"/></svg> एक ₹14,000–18,000 रिसेप्शनिस्ट के छोटे से हिस्से में — और 24×7 चालू.</div>
-  <p class="honest" style="text-align:center">आख़िरी कीमत साइनअप के वक्त तय होगी.</p>
-  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>12 / 13</span></div>
+  <div class="anchor" style="color:#fff; background:linear-gradient(135deg,var(--coral),#ff6a3d); border-radius:99px; padding:5mm 9mm; box-shadow:0 8px 20px rgba(255,123,84,.35);">★ फाउंडिंग ऑफर — पहली 10 लैब को <span style="white-space:nowrap">Professional सिर्फ़ ₹1,499/माह में</span>.</div>
+  <p class="honest" style="text-align:center">एक ₹14,000–18,000 रिसेप्शनिस्ट के छोटे से हिस्से में. आख़िरी कीमत साइनअप पर तय होगी.</p>
+  <div class="foot"><span class="wm">VOCILY<span class="dot">.</span> LABS</span><span>14 / 15</span></div>
 </section>
 
 <!-- 13 · FINAL  (PHOTO SLOT: style="--hero:url('assets/final.jpg')") -->
 <section class="page hero center final">
   <svg class="glyph" style="width:175mm;height:175mm;left:-35mm;bottom:-45mm" aria-hidden="true"><use href="#i-chat"/></svg>
-  <div class="line">रोज़ आपकी लैब कुछ कॉल मिस करती है.<br>रोज़ पेशंट अपडेट का इंतज़ार करते हैं.<br>रोज़ आपका स्टाफ वही चार जवाब देता है.</div>
-  <div class="q">ये सब अपने आप<br>चले तो?</div>
+  <div class="line">आज रात, लैब बंद होने के बाद भी, पेशंट के सवाल बने रहेंगे.<br>किसी को टेस्ट चाहिए. किसी को रिपोर्ट. किसी को होम कलेक्शन.</div>
+  <div class="q">बस एक सवाल है —<br>क्या कोई जवाब देगा?</div>
   <div class="brand">VOCILY<span class="dot">.</span> LABS</div>
-  <div class="cta"><b>अपनी ही लैब की ब्रांडिंग पर लाइव देखिए.</b> 10 मिनट का डेमो बुक करें.<br>📞 ____________________ &nbsp;·&nbsp; ✉ ____________________</div>
+  <div class="cta">डायग्नॉस्टिक लैब के लिए WhatsApp फ्रंट डेस्क.<br>📞 ____________________ &nbsp;·&nbsp; ✉ ____________________</div>
 </section>
 
 </body>
