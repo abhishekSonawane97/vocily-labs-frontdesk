@@ -154,4 +154,28 @@ How to read this:
 6. Reset sheet to restore the clean demo state.
 
 ---
+
+## L. Image / PDF — does the lab conduct this test? (OCR)
+
+*Executed 2026-06-21 via synthetic WAHA media webhooks (real fetch → Gemini-vision path). **0 wrong answers** — every non-happy case was dropped or safely fell back. Patient DMs only.*
+
+| ID | Input | Expected | Result |
+|----|-------|----------|--------|
+| L1 | Photo of blood report (CBC, Lipid, Thyroid) | “✅ Yes, we do these” + book prompt | ✅ pass |
+| L2 | Photo of scan report (USG, X-Ray, MRI) | “❌ scan/imaging — we’re a pathology lab” | ✅ pass |
+| L3 | Mixed report (CBC + USG) | “✅ we do CBC; ❌ we don’t USG” | ✅ pass |
+| L4 | Report photo **+ Hinglish caption** | availability answer (caption used as context) | ✅ pass |
+| L5 | Serology (COVID RT-PCR, Dengue NS1, Widal) | “✅ yes” (classified pathology) | ✅ pass — *category-level, see DOC §8.7* |
+| L6 | Vernacular (Devanagari) report | reads + answers | ⚠️ needs real test (tooling couldn’t render Devanagari) |
+| L7 | Non-medical image (bill / sticker) | fallback “type the test name” | ✅ pass |
+| L8 | **PDF** | same OCR path as image | ✅ fetch+parse proven (real medical PDF = on-device test) |
+| L9 | Voice note / video | ignored — no reply, **no LLM call** | ✅ pass |
+| L10 | Location / contact (no media) | ignored | ✅ pass |
+| L11 | Unreachable / expired media URL | safe fallback, no crash | ✅ pass |
+| L12 | Media in a **non-staff group** | ignored (gated) | ✅ pass |
+| L13 | Our own outgoing (`fromMe`) | ignored | ✅ pass |
+
+**On-device still to confirm:** real phone-photo OCR quality (blur/glare/angle), handwritten prescriptions, and vernacular (Devanagari) reports — send these to `918329914036`.
+
+---
 *Each test maps to the flows in `DOCUMENTATION.md` §6. If a test fails, pull the execution (`includeData=true`) and read the `Brain` node output first — it shows the parsed phone, the chosen action, and the reply.*

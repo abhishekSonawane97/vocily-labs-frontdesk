@@ -1,11 +1,11 @@
 # Vocily Labs — WhatsApp Front Desk for Diagnostic Labs
-### Complete System Documentation (as-built, 2026-06-17)
+### Complete System Documentation (as-built, 2026-06-17 · updated 2026-06-21: image/PDF test-availability)
 
 ---
 
 ## 0. TL;DR — what this is
 
-A **WhatsApp "front desk"** for a diagnostic lab. A patient messages the lab's WhatsApp number in plain language (English / Hindi / Marathi / Hinglish); an **AI understands the intent** and the system books a test, captures a home-collection request, answers prices/timings, and tells the patient when their report is ready — 24×7, with no human at the desk. Lab staff mark a report "ready" by posting the patient's number in a private staff WhatsApp group.
+A **WhatsApp "front desk"** for a diagnostic lab. A patient messages the lab's WhatsApp number in plain language (English / Hindi / Marathi / Hinglish); an **AI understands the intent** and the system books a test, captures a home-collection request, answers prices/timings, and tells the patient when their report is ready — 24×7, with no human at the desk. Lab staff mark a report "ready" by posting the patient's number in a private staff WhatsApp group. It can also read an **image or PDF of a report** a patient sends and answer one focused question — *does the lab conduct these tests?* — extracting only the test names (nothing else).
 
 It is **not** a lab-management system. It is a **communication layer** that sits on top of whatever the lab already does. Everything is config-driven and seeded for **Kushal Pathology Lab, Aurangabad** — swap one config object to re-skin it for another lab.
 
@@ -125,7 +125,7 @@ It is **not** a lab-management system. It is a **communication layer** that sits
 ## 4. The four workflows (node-by-node)
 
 ### 4.1 `Vocily-Labs Bot — Inbound Router` (id `LpnFG9kwWAdQOkiw`, ACTIVE)
-The patient-facing brain. Webhook receives **all** inbound WhatsApp (DMs *and* the staff group).
+The patient-facing brain. Webhook receives **all** inbound WhatsApp (DMs *and* the staff group). It now also handles **incoming images and PDFs** (test-availability via OCR — see §5 step D and §6.9).
 
 **Nodes & wiring**
 ```
@@ -183,7 +183,8 @@ The Brain is one async **Code** node. Order of operations:
 **A. Parse the WAHA payload**
 - Read `body.payload` from the webhook.
 - `from` may be a privacy id `…@lid` (WAHA NOWEB). The **real phone** is in `payload._data.key.remoteJidAlt`. The Brain extracts digits, normalises (10-digit → prefix `91`), and builds `chatId = <number>@c.us`.
-- Skip if no text / message is from us (`fromMe`).
+- Detect media: `payload.media` with mime `image/*` or `application/pdf` → `hasDoc`.
+- Skip only if the message is from us (`fromMe`), or there is **neither text nor a usable image/PDF** — so media-only messages are no longer dropped.
 
 **B. Session + memory (conversation context)**
 - State lives in `$getWorkflowStaticData('global').sessions[<phone>]` — survives across messages.
@@ -192,24 +193,30 @@ The Brain is one async **Code** node. Order of operations:
 **C. After-hours awareness**
 - Computes the current **IST hour**; lab open = 07:00–23:00. If closed, booking confirmations get a *"we're closed, team will follow up in the morning"* note and the row is tagged `Source = WhatsApp (after-hours)`.
 
-**D. Staff-group report intake** (if the message is from group `120363411817386712@g.us`)
+**D. Image / PDF — does the lab conduct this test? (OCR)** *(patient DMs only)*
+- If the message carries an **image (`image/*`) or a PDF (`application/pdf`)**, the Brain fetches the file from WAHA (`media.url`, host rewritten to internal `http://waha:3000`; WAHA auto-downloads incoming media on the **free** Core tier, ~180 s lifetime), base64-encodes it, and sends it to **Gemini 2.5 Flash** inline (`inlineData`) with a strict prompt: *extract ONLY medical test/scan names and classify each `pathology | imaging | other`; return `{readable, tests[]}`; output nothing else.*
+- **Category rule** (Kushal = pathology only): pathology → “✅ yes, we do it”; imaging/scan → “❌ we’re a pathology lab, we don’t do scans”; mixed → does/doesn’t list; only-other/ambiguous → “confirm at the desk”.
+- **Confidence gate / privacy:** if `readable=false`, no test is found, or the fetch fails → a safe fallback (“please type the test name”). It **never** states values, ranges, diagnoses or any other content from the document, and the image is never stored.
+- Non-document media (audio, video, stickers, location, contacts) is ignored with **no LLM call**.
+
+**E. Staff-group report intake** (if the message is from group `120363411817386712@g.us`)
 - Parse the patient number from the caption (`<number>` or `<number>|Test`).
 - `Vocily-Labs Lookup` the number → if found, emit `doReport` with the patient's chat id + a "report ready" message + the `VOC_id`; the workflow then texts the patient, flips the row to `Ready`, and confirms to the group. If not found → reply to the group "no patient found."
 
-**E. Deterministic fast-paths** (no LLM, instant)
+**F. Deterministic fast-paths** (no LLM, instant)
 - Greetings (`hi/hello/menu/namaste/…`) → branded menu (and reset history).
 - Bare `1/2/3/4` → booking start / home / report-status / timings.
 
-**F. AI dialogue manager** (everything else)
+**G. AI dialogue manager** (everything else)
 - Build a transcript of the conversation and ask **Gemini** for a strict-JSON decision:
   `{action, name, test, area, time, phone, reply}` where `action ∈ {ask, book_walkin, book_home, report_status, cancel, answer, menu}`.
 - The prompt carries the **Kushal config** (hours, location, phones, packages) and hard rules: *default to walk-in*; *home only if the patient explicitly asks*; *never use the lab's address as the patient's*; *never invent prices/tests*.
 - The Brain then **deterministically** executes the action — generates the token + `VOC_id`, writes the row, runs the lookup, etc. (Gemini decides + phrases; code does the writes — so a token is never hallucinated.)
 
-**G. Gemini key rotation (reliability)**
+**H. Gemini key rotation (reliability)**
 - The dialog call rotates over **4 API keys** (working ones first). On a `429`/error it transparently tries the next key. Free-tier quota is ~100 calls/key/day, so 4 keys ≈ 400/day and it self-heals when one is throttled.
 
-**H. Fallback (Gemini fully down)**
+**I. Fallback (Gemini fully down)**
 - Deterministic keyword routing (book/test → booking, home → home, report/ready → status, price/time → timings) + a graceful "could you rephrase / reply MENU" message. The bot never hard-fails.
 
 ---
@@ -293,6 +300,22 @@ Bot:    "✅ Your booking has been cancelled."
 
 ---
 
+### 6.9 Image / PDF — does the lab conduct this test? (OCR)
+```
+Patient sends a photo of a report / a PDF  (optionally with a caption)
+     |  Brain: media is image/* or application/pdf
+     v
+fetch bytes from WAHA (media.url -> http://waha:3000)  ->  base64
+     |
+     v  Gemini 2.5 Flash (vision): extract test names + classify pathology|imaging|other
+     |
+     +- readable + pathology      -> "✅ Yes, we do <tests> — reply 1/2 to book"
+     +- readable + imaging/scan   -> "❌ that's a scan; we are a pathology lab"
+     +- readable + mixed          -> "✅ we do <...>;  ❌ we don't <...>"
+     +- not readable / not a report / fetch failed -> "📄 please type the test name"
+```
+Scope: only **test-availability** is answered — never values, diagnosis or PII. Verified across 13+ cases (see `TEST-CASES.md` §L).
+
 ## 7. How-to / runbook (operations)
 
 All API calls use the n8n base `https://n8n.rohinisonawane.com/api/v1` with header `X-N8N-API-KEY: <n8n key>`. WAHA calls run **on the VM** (`gcloud compute ssh ai-agent-server …`) against `http://localhost:3002` with header `X-Api-Key: <WAHA_API_KEY>`.
@@ -341,6 +364,9 @@ POST /workflows/ycLwHgDbI4qqnY8C/deactivate   # OFF (default)
 4. **Gemini key rotation** — free-tier quota (~100/key/day) is the only real constraint; 4 rotating keys + self-heal on 429. For high volume, enable billing on one key.
 5. **Single tab for the demo** — the user's **daily-tab + monthly-merge** model is the *production* data layout; deferred because it touches every sheet-access node and the demo works cleanly on one tab.
 6. **Proactive messages = mild WAHA ban risk** — the Reminders cron is OFF by default; in production these become Cloud API utility templates (compliant).
+7. **Image/PDF answers use a *category* rule, not Kushal’s exact menu** — any blood/urine test classifies as “yes”. For a specific assay the lab does not run in-house it can still say “yes”; exact accuracy would need a test catalog (deferred — category rule chosen for zero maintenance).
+8. **OCR readability is the swing factor** — clear printed reports read well; blurry / low-light / angled photos and handwritten prescriptions may not, and the bot then **safely falls back** to “type the test name”. Vernacular (Devanagari) reading is plausible but not yet validated on a real report.
+9. **Receiving media is free** (WAHA Core, since v2024.10 — only *sending* files is Plus-gated), so the image/PDF feature adds **no cost** (it reuses the rotating Gemini keys).
 
 ---
 
