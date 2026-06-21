@@ -1,5 +1,5 @@
 # Vocily Labs — WhatsApp Front Desk for Diagnostic Labs
-### Complete System Documentation (as-built, 2026-06-17 · updated 2026-06-21: image/PDF test-availability)
+### Complete System Documentation (as-built, 2026-06-17 · updated 2026-06-21: image/PDF test-availability, verified live)
 
 ---
 
@@ -195,6 +195,7 @@ The Brain is one async **Code** node. Order of operations:
 
 **D. Image / PDF — does the lab conduct this test? (OCR)** *(patient DMs only)*
 - If the message carries an **image (`image/*`) or a PDF (`application/pdf`)**, the Brain fetches the file from WAHA (`media.url`, host rewritten to internal `http://waha:3000`; WAHA auto-downloads incoming media on the **free** Core tier, ~180 s lifetime), base64-encodes it, and sends it to **Gemini 2.5 Flash** inline (`inlineData`) with a strict prompt: *extract ONLY medical test/scan names and classify each `pathology | imaging | other`; return `{readable, tests[]}`; output nothing else.*
+- **Fetch mechanism (important):** WAHA serves the incoming file at `media.url` = `http://localhost:3000/api/files/…`, and `/api/files` **requires the `X-Api-Key`**. The Brain rewrites that host to the internal `http://waha:3000` **with a regex** (NOT `new URL()` — that global throws in the n8n Code-node sandbox) and attaches `X-Api-Key` **only** for the internal host (never leaks to external URLs).
 - **Category rule** (Kushal = pathology only): pathology → “✅ yes, we do it”; imaging/scan → “❌ we’re a pathology lab, we don’t do scans”; mixed → does/doesn’t list; only-other/ambiguous → “confirm at the desk”.
 - **Confidence gate / privacy:** if `readable=false`, no test is found, or the fetch fails → a safe fallback (“please type the test name”). It **never** states values, ranges, diagnoses or any other content from the document, and the image is never stored.
 - Non-document media (audio, video, stickers, location, contacts) is ignored with **no LLM call**.
@@ -367,6 +368,7 @@ POST /workflows/ycLwHgDbI4qqnY8C/deactivate   # OFF (default)
 7. **Image/PDF answers use a *category* rule, not Kushal’s exact menu** — any blood/urine test classifies as “yes”. For a specific assay the lab does not run in-house it can still say “yes”; exact accuracy would need a test catalog (deferred — category rule chosen for zero maintenance).
 8. **OCR readability is the swing factor** — clear printed reports read well; blurry / low-light / angled photos and handwritten prescriptions may not, and the bot then **safely falls back** to “type the test name”. Vernacular (Devanagari) reading is plausible but not yet validated on a real report.
 9. **Receiving media is free** (WAHA Core, since v2024.10 — only *sending* files is Plus-gated), so the image/PDF feature adds **no cost** (it reuses the rotating Gemini keys).
+10. **Hard-won fetch gotchas (fixed 2026-06-21):** three stacked bugs made every *real* image/PDF fall back — (a) WAHA `/api/files` → **401** without `X-Api-Key`; (b) the free Gemini keys → **429** (quota is shared across *all* bot traffic, ~100–250/day each); and the real culprit (c) **`new URL()` throws in the n8n Code sandbox**, so the `localhost`→`waha:3000` rewrite + key were skipped and the bot fetched its *own* container's localhost (`ECONNREFUSED`). Fixes: regex host-rewrite + `X-Api-Key` on the internal fetch + a 6th Gemini key. **Repro without WhatsApp:** `docker cp` a file into `waha:/tmp/whatsapp-files/default/X.png` (WAHA serves it at `/api/files/default/X.png` with the key) and POST a webhook with `media.url=http://localhost:3000/api/files/default/X.png`. WAHA's key env is `WAHA_API_KEY`.
 
 ---
 

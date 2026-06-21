@@ -175,7 +175,7 @@ How to read this:
 | L12 | Media in a **non-staff group** | ignored (gated) | ✅ pass |
 | L13 | Our own outgoing (`fromMe`) | ignored | ✅ pass |
 
-**On-device still to confirm:** real phone-photo OCR quality (blur/glare/angle), handwritten prescriptions, and vernacular (Devanagari) reports — send these to `918329914036`.
+**Verified live 2026-06-21** — the WAHA-internal authenticated fetch path now works end-to-end (image **and** PDF) after fixing three stacked bugs: `/api/files` 401 (added `X-Api-Key`), Gemini 429 (added a 6th key), and `new URL()` throwing in the n8n Code sandbox (→ regex host-rewrite). *Repro without a phone:* `docker cp` a file into `waha:/tmp/whatsapp-files/default/X.png`, then POST a webhook with `media.url=http://localhost:3000/api/files/default/X.png`. **Still to confirm on real phones:** OCR quality (blur/glare/angle), handwritten prescriptions, and vernacular (Devanagari) reports — send these to `918329914036`.
 
 ---
 *Each test maps to the flows in `DOCUMENTATION.md` §6. If a test fails, pull the execution (`includeData=true`) and read the `Brain` node output first — it shows the parsed phone, the chosen action, and the reply.*
